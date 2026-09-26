@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PocketSmart</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',sans-serif}
+body{background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);min-height:100vh;padding:20px}
+.container{max-width:900px;margin:0 auto}
+.card{background:white;border-radius:16px;padding:25px;margin-bottom:20px;box-shadow:0 10px 30px rgba(0,0,0,0.2)}
+h1{text-align:center;color:#333}
+.subtitle{text-align:center;color:#666;margin-bottom:20px}
+.row{display:flex;gap:15px;flex-wrap:wrap}
+.col{flex:1;min-width:250px}
+input,select{width:100%;padding:12px;border:2px solid #e0e0e0;border-radius:8px;margin-top:8px;font-size:15px}
+label{font-weight:600;color:#333;font-size:14px}
+.btn{width:100%;padding:13px;border:none;border-radius:8px;font-weight:700;cursor:pointer;font-size:16px;margin-top:15px}
+.btn-add{background:#667eea;color:white}
+.btn-ai{background:#00c853;color:white}
+.expense-item{display:flex;justify-content:space-between;background:#f8f9ff;padding:12px;border-radius:8px;margin-top:8px;border-left:4px solid #667eea}
+.total-box{background:linear-gradient(135deg,#667eea,#764ba2);color:white;text-align:center;padding:20px;border-radius:12px}
+.insights{background:#e8f5e9;border-left:5px solid #00c853;padding:15px;border-radius:8px;white-space:pre-wrap;margin-top:15px;line-height:1.6}
+</style>
+</head>
+<body>
+<div class="container">
+<div class="card">
+<h1>💰 PocketSmart</h1>
+<p class="subtitle">Your AI Financial Buddy</p>
+<div class="row">
+<div class="col">
+<label>Expense Name</label>
+<input type="text" id="desc" placeholder="Ex: Tea, Bus">
+</div>
+<div class="col">
+<label>Amount Rs</label>
+<input type="number" id="amount" placeholder="Ex: 50">
+</div>
+<div class="col">
+<label>Category</label>
+<select id="category">
+<option>Food</option><option>Transport</option><option>Shopping</option><option>Entertainment</option><option>Bills</option><option>Others</option>
+</select>
+</div>
+</div>
+<button class="btn btn-add" onclick="addExpense()">+ Add Expense</button>
+</div>
+<div class="row">
+<div class="col">
+<div class="card">
+<div class="total-box">
+<h3>Total Spent</h3>
+<h1 id="total">Rs 0</h1>
+<p id="count">0 expenses</p>
+</div>
+<div id="list"></div>
+</div>
+</div>
+<div class="col">
+<div class="card">
+<label>Monthly Income Rs</label>
+<input type="number" id="income" placeholder="15000" value="15000">
+<button class="btn btn-ai" onclick="getInsights()">🤖 Get AI Saving Tips</button>
+<div id="insights"></div>
+</div>
+</div>
+</div>
+</div>
+<script>
+let totalSpent=0;
+async function addExpense(){
+ const desc=document.getElementById('desc').value;
+ const amount=document.getElementById('amount').value;
+ const category=document.getElementById('category').value;
+ if(!desc||!amount){alert('Please enter name and amount pa!');return;}
+ const data={description:desc,amount:amount,category:category};
+ const res=await fetch('/add-expense',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});
+ const result=await res.json();
+ if(result.success){updateUI(result.expenses);document.getElementById('desc').value='';document.getElementById('amount').value='';}
+}
+function updateUI(expenses){
+ const list=document.getElementById('list');list.innerHTML='';let total=0;
+ expenses.forEach(e=>{total+=parseFloat(e.amount);list.innerHTML+=`<div class="expense-item"><span><b>${e.description}</b> <small>(${e.category})</small></span><b>Rs${e.amount}</b></div>`;});
+ document.getElementById('total').innerText='Rs '+total;document.getElementById('count').innerText=expenses.length+' expenses';totalSpent=total;
+}
+async function getInsights(){
+ const income=document.getElementById('income').value||15000;
+ const insightsDiv=document.getElementById('insights');insightsDiv.innerHTML='<p>AI Yosikkuthu pa...</p>';
+ const res=await fetch('/get-insights',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({income:parseFloat(income)})});
+ const data=await res.json();
+ if(data.insights){insightsDiv.innerHTML=`<div class="insights">${data.insights}</div>`;}else{insightsDiv.innerHTML=`<div class="insights">${data.error||'API Key check pannunga'}</div>`;}
+}
+</script>
+</body>
+</html>
