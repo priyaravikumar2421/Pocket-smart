@@ -2,3 +2,4 @@ Flask
 python-dotenv
 google-generativeai
 gunicorn
+protobuf==4.25.3
